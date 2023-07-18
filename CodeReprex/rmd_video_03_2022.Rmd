@@ -1,0 +1,25 @@
+---
+title: "Embedding Videos in R Markdown"
+author: "Chris Barnett"
+date: "3/14/2022"
+output: html_document
+---
+
+## R Markdown
+
+Video can be included in your markdown document tutorial text
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/lJIrF4YjHfQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-external="1"></iframe>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/sxYE0BY1mdc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+The code above doesn't work because it is missing the "data-external="1">" CSS code that isn't included in the YouTube embed code. Add it to the end to embed the video.
+
+
+
+We can also use the "vembedr" package to easily embed videos in code chunks
+
+```{r vembedr}
+library(vembedr)
+vembedr::embed_url("https://youtu.be/WkF7nqEYF1E")
+```

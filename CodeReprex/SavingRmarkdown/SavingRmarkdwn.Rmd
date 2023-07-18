@@ -1,0 +1,78 @@
+---
+title: "Teen Birth Rate Report"
+#date: "1/18/2022"
+output: 
+  html_document:  
+ 
+params: 
+ cnty_fips: ""
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+library(httr)
+library(jsonlite)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(DT)
+
+options(scipen=999) # remove scientific notation
+
+#Connect to API, Read in data, and clean a bit
+
+url <- "https://data.alaska.gov/resource/7vre-awpz.json"
+t_dat <- jsonlite::fromJSON(url)
+
+t_dat <- t_dat %>% mutate_at(c("year","birth_rate","lower_confidence_limit","upper_confidence_limit"), as.numeric)
+
+rgn <- t_dat %>% filter(county_fips_code == params$cnty_fips)
+
+county <- rgn %>% select (county) 
+cnty <- first(county$county)
+
+```
+
+
+<div class = "header">
+<left>
+<h1>  `r cnty` </h1>
+Alaska, 2003 - 2018 
+</left> 
+</div>
+<hr>
+
+
+# Overview
+
+Creating an Rmarkdown (HTML, PDF, or Word) document using Rstudio is simple and convenient with the "Knit" button. However, when you use this button a version of the knitted document is saved in the current working directory. This example covers how to save the document in another location and replicate similar reports but for different regions.
+
+For this example we're going to use data available on the Alaska Open data Portal located at: <https://data.alaska.gov/>  Specifically, we will connect to the "Teen Birth Rates Age Group 15-19 in AK by Borough 2003 through 2018" API in the "Health" portal.  
+
+These data were originally obtained from the CDC and are now hosted on the Open data Portal by Russ Schmidt. 
+
+---
+# Teen Birth Rate 
+
+This simple report provides a trend line and table of the teen birth rate in the `r cnty` region.   
+
+
+Plot with table of teen birth rates in Alaska. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width = 9, fig.height= 4}
+rg_pt <- ggplot(data = rgn, aes(x = year, y = birth_rate)) +
+         geom_ribbon(aes(ymin = lower_confidence_limit,ymax = upper_confidence_limit),
+                     fill = "blue",alpha = 0.25) +
+         geom_line(size = 1, color = "#0a306a") +
+         geom_point(aes(x = year, y = birth_rate,text = paste("Year:",year,"<br>Teen Birth Rate:",birth_rate,"<br>LowerCI:",lower_confidence_limit,"<br>UpperCI:",upper_confidence_limit)),size = 2, color = "#0a306a") +
+         scale_x_continuous(breaks = c(2003:2018)) +
+         ggtitle(paste0("Teen Birth Rate ",first(rgn$county)," Alaska, 2003-2018")) +
+         ylab("Average teen birth rate") +
+         theme_minimal()
+ggplotly(rg_pt, tooltip = c("text"))  
+dt1<-datatable(data = as.data.frame(rgn),extensions = c("Buttons"))
+dt1
+
+```  
+
+End of example

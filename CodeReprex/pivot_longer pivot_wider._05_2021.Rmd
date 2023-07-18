@@ -1,0 +1,91 @@
+---
+title: "pivot_longer pivot_wider"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+
+library(dplyr)
+library(tidyr) ##pivot_wider and pivot_longer
+library(ggplot2)
+library(tibble)
+library(datasets)
+
+
+```
+
+
+
+```{r}
+
+### load sample dataset 
+
+head(USPersonalExpenditure)
+
+###convert from a matrix to a dataframe
+
+spending <- USPersonalExpenditure
+
+spending <- data.frame(spending, check.names = F)
+head(spending)
+
+##turn the rownames into a data column called category
+
+spending <- rownames_to_column(spending, "category")
+
+head(spending)
+
+```
+
+```{r}
+## pivot_longer
+## pivot from a WIDE to a LONG format
+
+spending_long <- spending %>% pivot_longer(cols =(-category),  names_to="year", values_to="spending")
+
+
+head(spending_long)
+View(spending_long)
+```
+
+
+
+
+```{r}
+
+ggplot(spending_long)+
+  geom_line(aes(x=year, y=spending,group=category, color=category))+
+  facet_wrap(~category)
+
+```
+
+```{r}
+## pivot from a LONG to a WIDE format
+
+head(spending_long)
+
+
+spending_wide <- spending_long %>% pivot_wider( names_from=year, values_from=spending)
+
+head(spending_wide)
+
+# spending_wide <-  spending_wide %>% (mutate(total = `1940` + `1945` +`1950` +`1955`+  `1960`))
+# 
+# library(janitor)
+# spending_wide <-  spending_wide %>% clean_names()
+
+
+
+```
+
+
+## Tips
+
+
+
+
+
+

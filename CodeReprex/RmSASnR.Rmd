@@ -1,0 +1,115 @@
+---
+title: "Running SAS in Rmarkdown"
+author: "Jared Parrish PhD"
+date: "7/18/2022"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+I sometimes work with people who prefer to use SAS, or have some code that I developed using SAS. Instead of re-writing this code you can run it directly from within Rmarkdown. To do this however you have to have a valid version of SAS installed and activated on your computer. Actually, you can run any number of other languages (e.g., Python, STATA, SPSS) from within Rmarkdown, you just have to register the custom language engine within the knitr package.   
+
+For details and extra reading visit the rmarkdown cookbook. https://bookdown.org/yihui/rmarkdown-cookbook/other-languages.html   
+
+**NOTE: to run this example you'll need SAS and the R packages SASmarkdown and epitools**  
+
+## Example - basic
+For this example I'm going to use some data from the Alaska Birth Defects Registry that publishes condition specific reports using Rmarkdown. These are currently hosted on AWS.     https://rstudio-pubs-static.s3.amazonaws.com/847739_3f90de4a039247b5a28303fd88da61e4.html 
+
+````
+```{sas, engine.path = "C:\\Program Files\\SASHome\\SASFoundation\\9.4\\sas.exe", eval = TRUE}`SAS''`
+data SnR;
+    input Mage Defects count;
+    datalines;
+0 0 120375
+0 1 162
+1 0 3030
+1 1 34
+;
+
+proc print data = SnR;
+run;
+
+```
+````
+
+```{sas ,engine.path = "C:\\Program Files\\SASHome\\SASFoundation\\9.4\\sas.exe", echo = FALSE}
+data SnR;
+    input Mage Defects count;
+    datalines;
+0 0 120375
+0 1 162
+1 0 3030
+1 1 34
+;
+
+proc print data = SnR;
+run;
+
+proc freq data = SnR order=data;
+    tables Mage*Defects / relrisk nopercent nocol;
+    weight count;
+    title 'Maternal age and Trisomy 21';
+run;
+
+Data SnR1;
+set SnR;
+run;
+
+```
+## Example - nicer output
+A few really nice packages can make the output a lot better:  
+SASmarkdown is one of these and makes the tables and information a lot nicer to view.  
+
+```{r}
+library(SASmarkdown)
+saspath <- "C:\\Program Files\\SASHome\\SASFoundation\\9.4\\sas.exe"
+sasopts <- "-nosplash -linesize 75" # remove the SAS startup screen
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)  #set kniter options for nicer printing of SAS ouput
+```
+
+
+```{r}
+data SnR;
+    input Mage Defects count;
+    datalines;
+0 0 120375
+0 1 162
+1 0 3030
+1 1 34
+;
+
+Data SnR1;
+set SnR;
+run;
+
+proc freq data = SnR1 order=data;
+    tables Mage*Defects / relrisk nopercent nocol;
+    weight count;
+    title 'Maternal age and Trisomy 21';
+run;
+
+```
+
+## Same example now with R
+To move back and forth between engines you have to reset and set the kniter options.
+
+```{r, engine='R'}
+knitr::opts_chunk$set(engine="R", engine.path=NULL, engine.opts=NULL, comment=NA)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+library(epitools)
+dta <- matrix(c(120375,162,3030,34),
+              nrow = 2, byrow =TRUE,
+              dimnames = list(c("<40","40+"),
+                              c("0","1")))
+oddsratio.fisher(dta)  
+riskratio(dta)  
+
+
+```
+
+--End Example--

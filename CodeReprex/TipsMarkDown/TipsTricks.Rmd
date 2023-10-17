@@ -1,0 +1,105 @@
+---
+title: "R Markdown Tips & Tricks"
+author: "Jared Parrish, PhD"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Horsepower and MPG {#custom-id1}  
+
+```{r}
+#| include = FALSE
+library(dplyr)
+library(ggplot2)
+```
+
+Sometimes you might want to include the code chunks, but they may take up a lot of space and 
+make the document long. You can include "code folding" into the YMAL
+
+```{r}
+mtcars %>% 
+  ggplot(aes(x = hp, y = mpg)) +
+  geom_point()
+```
+
+
+## Additional folding options  
+This first option is nice when you have a lot of code and output to the console you want
+to include but want to hide by default.
+```{r}
+#| collapse = TRUE
+mtcars %>% 
+  glimpse()
+```
+This option prints the output of glimpse() but hides the code.
+```{r}
+#| collapse = FALSE
+mtcars %>% 
+  glimpse()
+
+mtcars %>%
+  ggplot(aes(x = cyl, y = hp)) +
+  geom_point()
+```
+
+## Using Tabsets {.tabset}    
+Sometimes you may want to include tabs opposed to a long linear document. You can do this 
+by simply specifying a new section heading with "{.tabset}" included. The nested sections will then be tabs in the document.  
+
+### Plot 
+```{r}
+mtcars %>% 
+  ggplot(aes(x = hp, y = mpg)) +
+  geom_point()
+```
+
+### Table
+
+```{r}
+#| collapse = FALSE
+mtcars %>% 
+  glimpse()
+```
+
+## Multiple column page  
+
+Often it is useful to display information in multiple columns on a page. This can be done with adding ":::columns" to the document.
+
+::: columns
+::: column
+When you specify the ":::column" this will be what is on the left side.  
+
+```{r}
+mtcars %>%
+  ggplot(aes(x = hp, y = mpg)) +
+  geom_point()
+```
+
+:::
+
+::: column
+This will be what is on the right side of the page.  
+```{r}
+#| collapse = TRUE
+mtcars %>%
+  glimpse()
+```
+:::
+:::
+
+You can close out and return to normal full page spanning by ending the "columns" with a ":::". Displaying a table or text next to a plot is a common use of multiple columns.  
+
+## Internal links  
+
+
+* Go to [Horsepower and MPG](#custom-id1)
+
+

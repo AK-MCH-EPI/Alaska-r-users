@@ -1,0 +1,129 @@
+---
+title: "sparklines"
+author: "Megan Ackerman"
+date: "2024-11-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+## Sparklines
+
+Sparklines are a simple line chart depicting a trend over time. They often omit any axes and are used in line with text. Edward Tufte coined the term "sparkline" in the early 2000s and sparklines were introduced into Microsoft Excel 2010. 
+
+There are a few ways to create sparklines, as with all things in R. It's possible to build sparklines using ggplot2, but I find using the designated sparkline package easier.
+
+```{r data, message=F}
+#load libraries
+
+library(tidyverse)
+library(DT)
+library(sparkline)
+
+#build dataframe
+
+df <- data.frame(
+  thing = c("something", "everything", "nothing"),
+  yr_20 = round(runif(3, 100, 999), 1),
+  yr_21 = round(runif(3, 100, 999), 1),
+  yr_22 = round(runif(3, 100, 999), 1))
+
+#single sparkline output, as if all values represent the same thing
+
+sparkline(df$yr_22)
+
+  
+```
+
+```{r, message=F}
+
+#let's use a DT table to show all of it
+
+#first, build the sparkline html column by switching to long format  
+
+df_long <- df %>% 
+  pivot_longer(cols=yr_20:yr_22, names_to = "year")
+
+df_spk <- df_long %>% 
+  group_by(thing) %>% 
+  summarize(spkline = spk_chr(value, 
+                              type = "line"))
+
+#add new sparkline column back it the og df
+
+df_1 <- left_join(df, df_spk)
+
+#build DT table, add in sparklines code for it show
+
+datatable(df_1, escape = FALSE, #escape false allows for the html to execute
+          colnames = c("Thing", "2020", "2021", "2022", "Sparkline"), #column renaming
+          options = list(paging = FALSE, #formatting 
+                         fnDrawCallback = htmlwidgets::JS(
+                           '
+function(){
+  HTMLWidgets.staticRender();
+}
+'))) %>%
+  spk_add_deps() #allows for sparklines to show up
+
+# you can format the sparklines as needed: change the colors, radius size, which values show up (default is min and max for each sparkline) 
+
+#https://omnipotent.net/jquery.sparkline/#s-docs 
+
+df_spk_2 <- df_long %>% 
+  group_by(thing) %>% 
+  summarize(spkline = spk_chr(value, 
+                              type = "line",
+                              minSpotColor = "#333333",
+                              maxSpotColor = "#333333",
+                              spotRadius = 3))
+
+df_2 <- left_join(df, df_spk_2)
+
+datatable(df_2, escape = FALSE, #escape false allows for the html to execute
+          colnames = c("Thing", "2020", "2021", "2022", "Sparkline"), #column renaming
+          options = list(paging = FALSE, #formatting 
+                         fnDrawCallback = htmlwidgets::JS(
+                           '
+function(){
+  HTMLWidgets.staticRender();
+}
+'))) %>%
+  spk_add_deps() #allows for sparklines to show up
+
+# if you want all data points have a 'spot' you can create a list of the values and use it as argument for what 'spots' should appear
+
+all_points <- setdiff(unique(df_long$value), c(max(df_long$value), min(df_long$value)))
+spots <- setNames(as.list(rep("#333333", length(all_points))), all_points)
+
+df_spk_3 <- df_long %>% 
+  group_by(thing) %>% 
+  summarize(spkline = spk_chr(value, 
+                              type = "line",
+                              valueSpots = spots,
+                              spotColor = "#333333",
+                              minSpotColor = "#333333",
+                              maxSpotColor = "#333333",
+                              spotRadius = 2.5
+                              ))
+
+df_3 <- left_join(df, df_spk_3)
+
+
+datatable(df_3, escape = FALSE, #escape false allows for the html to execute
+          colnames = c("Thing", "2020", "2021", "2022", "Sparkline"), #column renaming
+          options = list(paging = FALSE, #formatting 
+                         fnDrawCallback = htmlwidgets::JS(
+                           '
+function(){
+  HTMLWidgets.staticRender();
+}
+'))) %>%
+  spk_add_deps() #allows for sparklines to show up
+
+  
+
+```
+
